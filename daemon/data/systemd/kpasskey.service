@@ -1,0 +1,33 @@
+[Unit]
+Description=kpasskey phone authenticator daemon
+Documentation=https://github.com/iharob/kpasskey
+# The session bus carries the System Settings interface. The shipping daemon moves to the
+# system bus, because PAM needs it before any user session exists.
+After=dbus.socket
+Requires=dbus.socket
+
+[Service]
+Type=simple
+# Spike: points at the build tree so a rebuild takes effect on restart.
+ExecStart=/data/Code/kpasskey/daemon/target/release/kpk-spike serve --timeout 120
+Restart=on-failure
+RestartSec=2s
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+
+# 0007, so the PAM socket lands 0770 rather than 0755. Connecting to a Unix socket needs
+# *write* permission, which 0755 never granted to anyone but the owner — the FIDO helper only
+# got through before because sudo gave it full root including CAP_DAC_OVERRIDE. Under systemd
+# it has no capabilities at all, so it reaches the socket through the group instead
+# (SupplementaryGroups= in kpasskey-fido.service). This is also tighter than 0755: other
+# local users cannot connect and prompt this phone.
+UMask=0007
+
+[Install]
+WantedBy=default.target

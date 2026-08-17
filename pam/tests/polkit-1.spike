@@ -1,0 +1,9 @@
+#%PAM-1.0
+# TEST ONLY. Revert with: sudo rm /etc/pam.d/polkit-1
+# Socket lives under /run because polkit.service sets PrivateTmp=yes and ProtectHome=yes,
+# so polkitd's helper cannot see /tmp or /run/user at all.
+auth       [success=done default=ignore] pam_kpk_spike.so socket=/run/kpasskey/pam.sock timeout=180
+auth       include      system-auth
+account    include      system-auth
+password   include      system-auth
+session    include      system-auth

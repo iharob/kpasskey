@@ -1,0 +1,9 @@
+/daemon/target/
+/kcm/build/
+/pam/tests/*.so
+
+# Captured from real hardware. An Android attestation chain identifies the phone
+# that produced it: the intermediate's CN is a per-device attestation key id.
+# Kept locally for self-test, never committed.
+/attestation-chain.pem
+/daemon/crates/kpk-attest/testdata/

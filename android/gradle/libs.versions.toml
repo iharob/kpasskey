@@ -1,0 +1,43 @@
+[versions]
+# AGP 9 provides built-in Kotlin support, so no separate kotlin-android plugin.
+# AGP 8.x is incompatible with Gradle 9.6 (uses an internal API removed in 9.6.0).
+agp = "9.3.1"
+# Must equal the Kotlin that AGP 9.3.1 bundles: the Compose compiler plugin is versioned
+# in lockstep with the compiler and refuses to load against a different one.
+kotlin = "2.3.21"
+appcompat = "1.7.1"
+biometric = "1.4.0-alpha04"
+# 2026.08.00 ships Compose 1.12, which requires compileSdk 37 — not published in the stable
+# SDK channel yet. This is the newest BOM that builds against compileSdk 36.
+composeBom = "2026.06.01"
+activityCompose = "1.13.0"
+lifecycle = "2.10.0"
+coreKtx = "1.18.0"
+coroutines = "1.11.0"
+camera = "1.6.1"
+zxing = "3.5.4"
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
+[libraries]
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "lifecycle" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }

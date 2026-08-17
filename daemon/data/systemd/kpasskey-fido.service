@@ -1,0 +1,61 @@
+[Unit]
+Description=kpasskey virtual FIDO authenticator
+Documentation=https://github.com/iharob/kpasskey
+After=systemd-udevd.service
+
+[Service]
+Type=simple
+# Spike: points at the build tree so a rebuild takes effect on restart. Change this to
+# /usr/local/bin/kpk-spike once the binary is installed.
+ExecStart=/data/Code/kpasskey/daemon/target/release/kpk-spike uhid
+Restart=on-failure
+RestartSec=2s
+
+# Root is needed only to open /dev/uhid (0600 root:root) and create the virtual HID device.
+# Everything below removes the rest of root's reach.
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+# uid 0 owns /dev/uhid, so opening it is a plain DAC match and needs no capability.
+
+# PrivateDevices=yes would mount a fresh /dev without uhid in it, which breaks the whole
+# point of this unit. Use the device cgroup instead: deny everything, then allow uhid.
+DevicePolicy=closed
+DeviceAllow=/dev/uhid rw
+
+# The only thing it talks to is the daemon's Unix socket, so it needs no network at all.
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_UNIX
+
+# Reaching that socket needs write permission on it. With no capabilities, uid 0 gets no
+# DAC override, so membership of the daemon's group is what lets it connect — a far narrower
+# grant than handing this process CAP_DAC_OVERRIDE.
+# Spike: hardcoded. The shipping daemon runs as its own `kpasskey` system user and this
+# becomes SupplementaryGroups=kpasskey.
+SupplementaryGroups=iharob
+
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+UMask=0077
+
+# ProtectSystem=strict makes /run read-only, but sb_permission() only returns EROFS for
+# regular files, directories and symlinks — S_IFSOCK is exempt, so connecting to
+# /run/kpasskey/pam.sock still works. No ReadWritePaths= is needed.
+
+[Install]
+WantedBy=multi-user.target

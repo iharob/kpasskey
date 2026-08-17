@@ -1,0 +1,19 @@
+[package]
+name = "kpk-proximity"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+zbus.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+rand.workspace = true
+
+[[bin]]
+name = "kpk-ble-selftest"
+path = "src/bin/selftest.rs"

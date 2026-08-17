@@ -1,0 +1,10 @@
+{
+    "KPlugin": {
+        "Description": "Use your phone as a passkey to unlock this computer",
+        "Icon": "fingerprint",
+        "Name": "Phone Passkey",
+        "ServiceTypes": ["KCModule"]
+    },
+    "X-KDE-Keywords": "passkey,phone,fingerprint,biometric,unlock,authentication",
+    "X-KDE-System-Settings-Parent-Category": "security"
+}

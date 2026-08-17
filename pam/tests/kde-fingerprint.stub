@@ -1,0 +1,11 @@
+#%PAM-1.0
+# TEST ONLY. Revert with: sudo rm /etc/pam.d/kde-fingerprint
+# Approval is a root-owned file, so this grants nothing an attacker could not already do.
+auth       required   pam_shells.so
+auth       requisite  pam_nologin.so
+auth       requisite  pam_faillock.so      preauth
+auth       required   pam_env.so
+auth       [success=done default=die] pam_kpk_stub.so timeout=30
+account    include    system-local-login
+password   required   pam_deny.so
+session    include    system-local-login

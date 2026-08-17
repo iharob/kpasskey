@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">kpasskey</string>
+
+    <string name="channel_link">Desktop link</string>
+    <string name="channel_link_description">Shows that this phone is reachable by your computer.</string>
+    <string name="channel_approval">Approval requests</string>
+    <string name="channel_approval_description">Asks you to confirm a sign-in on your computer.</string>
+
+    <string name="status_connected">Connected to %1$s</string>
+    <string name="status_connected_short">Connected</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_waiting">Waiting for your computer</string>
+
+    <string name="notification_approval_body">Tap to review the request</string>
+    <string name="action_deny">Deny</string>
+    <string name="action_approve">Approve</string>
+
+    <string name="welcome_title">Unlock your computer with this phone</string>
+    <string name="welcome_body">Pair this phone with KDE on your computer. When your computer asks for a password, you confirm it here with your fingerprint instead.</string>
+    <string name="welcome_action">Pair with a computer</string>
+
+    <string name="scan_title">Scan the pairing code</string>
+    <string name="scan_help">On your computer, open System Settings → Phone Passkey → Pair a phone.</string>
+    <string name="scan_permission">Camera access is needed to read the pairing code.</string>
+    <string name="scan_grant">Allow camera</string>
+
+    <string name="confirm_title">Check the code matches</string>
+    <string name="confirm_body">Your computer is showing a six-digit code. It must match the one below.</string>
+    <string name="confirm_action">They match — pair</string>
+    <string name="confirm_pairing">Pairing…</string>
+
+    <string name="home_fingerprint_caption">Your computer shows this same code</string>
+    <string name="home_no_activity">No requests yet</string>
+    <string name="home_activity">Recent</string>
+    <string name="home_advanced">Advanced</string>
+
+    <string name="approval_detail">Details</string>
+    <string name="approval_unlock_first">Unlock your phone to approve</string>
+    <string name="approval_gone">That request is no longer waiting</string>
+
+    <string name="advanced_title">Advanced</string>
+    <string name="advanced_key">Key</string>
+    <string name="advanced_export">Export attestation chain</string>
+    <string name="advanced_unpair">Unpair and delete key</string>
+    <string name="advanced_notifications_off">Notifications are turned off, so approval requests cannot reach you.</string>
+    <string name="advanced_fsi_off">Approval requests will not wake the screen.</string>
+    <string name="advanced_fix">Fix</string>
+
+    <string name="key_invalidated_title">Your key was destroyed</string>
+    <string name="key_invalidated_body">A fingerprint was added or removed on this phone, so the key your computer trusts no longer exists. Pair again to continue.</string>
+    <string name="key_invalidated_action">Pair again</string>
+</resources>

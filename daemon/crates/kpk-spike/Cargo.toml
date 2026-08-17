@@ -1,0 +1,25 @@
+[package]
+name = "kpk-spike"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+tokio = { workspace = true, features = ["net", "io-util", "sync", "time"] }
+anyhow.workspace = true
+rand.workspace = true
+serde_json = "1"
+base64 = "0.22"
+ciborium = "0.2"
+zbus = { workspace = true }
+serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"
+p256 = { version = "0.13", features = ["ecdsa", "pem", "pkcs8"] }
+
+[[bin]]
+name = "kpk-spike"
+path = "src/main.rs"

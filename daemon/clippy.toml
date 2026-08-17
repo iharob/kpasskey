@@ -1,0 +1,1 @@
+doc-valid-idents = ["BlueZ", "StrongBox", "KeyMint", "CBOR", "CTAP", "WebAuthn", ".."]
