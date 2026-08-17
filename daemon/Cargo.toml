@@ -3,7 +3,6 @@ resolver = "3"
 members = ["crates/kpk-proximity", "crates/kpk-spike"]
 
 [workspace.package]
-version = "0.0.1"
 edition = "2024"
 license = "GPL-2.0-or-later"
 rust-version = "1.90"
