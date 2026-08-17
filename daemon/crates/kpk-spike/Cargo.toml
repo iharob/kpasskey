@@ -1,8 +1,6 @@
 [package]
 name = "kpk-spike"
-# Literal, not version.workspace: release-please rewrites the scalar at package.version
-# and fails outright on a dotted `version.workspace = true`. Both members move together.
-version = "0.0.1"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

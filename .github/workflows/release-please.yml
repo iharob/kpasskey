@@ -20,7 +20,15 @@ jobs:
     if: github.repository == 'iharob/kpasskey'
     runs-on: [self-hosted, linux, x64]
     steps:
-      - uses: googleapis/release-please-action@v4
+      # release-type is `simple` rather than `rust`, and every version is bumped
+      # through extra-files instead. The rust strategy cannot release a virtual
+      # workspace: Rust.buildUpdates() pushes a root Cargo.toml update
+      # unconditionally and CargoToml throws without a [package] section.
+      #
+      # Pinned to a commit, not the v4 tag: this runs on a non-ephemeral
+      # self-hosted runner with contents:write, so a repointed tag would execute
+      # on that machine.
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
