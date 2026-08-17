@@ -1,0 +1,26 @@
+name: release-please
+
+# Only `push` to main, never `pull_request`. A fork cannot trigger a push event on
+# this repository, which is what keeps untrusted code away from the self-hosted
+# runner this job executes on.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    if: github.repository == 'iharob/kpasskey'
+    runs-on: [self-hosted, linux, x64]
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
