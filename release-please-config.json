@@ -16,12 +16,7 @@
         {
           "type": "toml",
           "path": "daemon/Cargo.lock",
-          "jsonpath": "$.package[?(@.name=='kpk-spike')].version"
-        },
-        {
-          "type": "toml",
-          "path": "daemon/Cargo.lock",
-          "jsonpath": "$.package[?(@.name=='kpk-proximity')].version"
+          "jsonpath": "$.package[?(!@.source)].version"
         }
       ]
     }
