@@ -2,13 +2,27 @@
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "include-component-in-tag": false,
   "packages": {
-    "daemon": {
-      "release-type": "rust",
+    ".": {
+      "release-type": "simple",
       "package-name": "kpasskey",
-      "changelog-path": "/CHANGELOG.md",
       "extra-files": [
-        "/kcm/CMakeLists.txt",
-        "/android/app/build.gradle.kts"
+        "kcm/CMakeLists.txt",
+        "android/app/build.gradle.kts",
+        {
+          "type": "toml",
+          "path": "daemon/Cargo.toml",
+          "jsonpath": "$.workspace.package.version"
+        },
+        {
+          "type": "toml",
+          "path": "daemon/Cargo.lock",
+          "jsonpath": "$.package[?(@.name=='kpk-spike')].version"
+        },
+        {
+          "type": "toml",
+          "path": "daemon/Cargo.lock",
+          "jsonpath": "$.package[?(@.name=='kpk-proximity')].version"
+        }
       ]
     }
   }
