@@ -6,5 +6,5 @@
         "ServiceTypes": ["KCModule"]
     },
     "X-KDE-Keywords": "passkey,phone,fingerprint,biometric,unlock,authentication",
-    "X-KDE-System-Settings-Parent-Category": "security"
+    "X-KDE-System-Settings-Parent-Category": "security-privacy"
 }
