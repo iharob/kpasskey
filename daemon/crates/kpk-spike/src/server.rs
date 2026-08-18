@@ -451,12 +451,12 @@ pub async fn serve(
     let _ = std::fs::remove_file(socket_path);
     let pam_listener = UnixListener::bind(socket_path)
         .with_context(|| format!("binding {}", socket_path.display()))?;
-    let phone_listener = TcpListener::bind(("127.0.0.1", port))
+    let phone_listener = TcpListener::bind(("0.0.0.0", port))
         .await
-        .with_context(|| format!("binding 127.0.0.1:{port}"))?;
+        .with_context(|| format!("binding 0.0.0.0:{port}"))?;
 
     println!("kpk-spike listening");
-    println!("  phone   : 127.0.0.1:{port}  (adb reverse tcp:{port} tcp:{port})");
+    println!("  phone   : 0.0.0.0:{port}  (LAN, or adb reverse tcp:{port} tcp:{port})");
     println!("  pam     : {}", socket_path.display());
     println!("  devices : {}", devices_dir.display());
     println!("  wait    : {timeout_secs}s per verification");

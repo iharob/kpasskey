@@ -5,7 +5,7 @@ import org.kde.kcmutils as KCM
 import org.kde.kirigami as Kirigami
 import org.kde.prison as Prison
 
-KCM.ScrollViewKCM {
+KCM.AbstractKCM {
     id: root
 
     readonly property var devices: kcm.devices
@@ -17,6 +17,22 @@ KCM.ScrollViewKCM {
     implicitWidth: Kirigami.Units.gridUnit * 42
     implicitHeight: Kirigami.Units.gridUnit * 32
 
+    actions: [
+        Kirigami.Action {
+            icon.name: "list-add"
+            text: i18n("Pair a phone…")
+            visible: deviceList.count > 0
+            enabled: root.devices.available && !root.devices.pairing
+            onTriggered: root.startPairing()
+        },
+        Kirigami.Action {
+            icon.name: "view-refresh"
+            text: i18n("Refresh")
+            enabled: root.devices.available
+            onTriggered: root.devices.refresh()
+        }
+    ]
+
     Timer {
         // Drives the pairing countdown; the daemon owns the deadline, this only displays it.
         interval: 1000
@@ -27,6 +43,13 @@ KCM.ScrollViewKCM {
 
     header: ColumnLayout {
         spacing: Kirigami.Units.smallSpacing
+
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            visible: root.devices.serviceStatus.length > 0
+            type: Kirigami.MessageType.Warning
+            text: root.devices.serviceStatus
+        }
 
         Kirigami.InlineMessage {
             Layout.fillWidth: true
@@ -43,52 +66,143 @@ KCM.ScrollViewKCM {
         }
     }
 
-    view: ListView {
-        id: deviceList
+    RowLayout {
+        anchors.fill: parent
+        spacing: 0
 
-        model: root.devices
-        currentIndex: -1
+        QQC2.ScrollView {
+            Layout.fillHeight: true
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 18
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 24
 
-        Kirigami.PlaceholderMessage {
-            anchors.centerIn: parent
-            width: parent.width - (Kirigami.Units.largeSpacing * 4)
-            visible: deviceList.count === 0
-            icon.name: "smartphone"
-            text: i18n("No phone paired")
-            explanation: i18n("Pair a phone to use it as a passkey for unlocking this computer and authorising administrator actions.")
+            ListView {
+                id: deviceList
 
-            helpfulAction: Kirigami.Action {
-                icon.name: "list-add"
-                text: i18n("Pair a phone…")
-                enabled: root.devices.available
-                onTriggered: root.startPairing()
+                model: root.devices
+                currentIndex: -1
+                clip: true
+
+                Kirigami.PlaceholderMessage {
+                    anchors.centerIn: parent
+                    width: parent.width - (Kirigami.Units.largeSpacing * 4)
+                    visible: deviceList.count === 0
+                    icon.name: "smartphone"
+                    text: i18n("No phone paired")
+                    explanation: i18n("Pair a phone to use it as a passkey for unlocking this computer and authorising administrator actions.")
+
+                    helpfulAction: Kirigami.Action {
+                        icon.name: "list-add"
+                        text: i18n("Pair a phone…")
+                        enabled: root.devices.available
+                        onTriggered: root.startPairing()
+                    }
+                }
+
+                delegate: QQC2.ItemDelegate {
+                    id: item
+
+                    required property string deviceId
+                    required property string name
+                    required property string model
+                    required property string securityLevel
+                    required property string pairedAt
+                    required property bool hardwareBacked
+
+                    width: deviceList.width
+                    hoverEnabled: false
+                    down: false
+
+                    background: Rectangle {
+                        color: item.ListView.isCurrentItem ? Kirigami.Theme.highlightColor : "transparent"
+                    }
+
+                    contentItem: RowLayout {
+                        spacing: Kirigami.Units.largeSpacing
+
+                        Kirigami.Icon {
+                            source: "smartphone"
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+
+                            QQC2.Label {
+                                Layout.fillWidth: true
+                                text: item.name
+                                elide: Text.ElideRight
+                            }
+
+                            QQC2.Label {
+                                Layout.fillWidth: true
+                                text: i18n("%1 · paired %2", item.model, item.pairedAt)
+                                elide: Text.ElideRight
+                                font: Kirigami.Theme.smallFont
+                                opacity: 0.7
+                            }
+                        }
+
+                        Kirigami.Icon {
+                            source: item.hardwareBacked ? "security-high" : "security-low"
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        }
+                    }
+
+                    onClicked: deviceList.currentIndex = index
+                }
             }
         }
 
-        // A plain delegate with an explicit button: SwipeListItem overlays its actions on
-        // top of the content, which collides with the security badge.
-        delegate: QQC2.ItemDelegate {
-            id: item
+        Kirigami.Separator {
+            Layout.fillHeight: true
+        }
 
-            required property string deviceId
-            required property string name
-            required property string model
-            required property string securityLevel
-            required property string pairedAt
-            required property bool hardwareBacked
-            required property string fingerprint
+        QQC2.ScrollView {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
-            width: deviceList.width
-            hoverEnabled: false
-            down: false
+            contentItem: Loader {
+                id: detailsLoader
 
-            contentItem: RowLayout {
+                readonly property var details: deviceList.currentIndex >= 0
+                    ? root.devices.deviceDetails(deviceList.currentIndex)
+                    : null
+
+                sourceComponent: detailsLoader.details ? detailsComponent : emptyDetailsComponent
+            }
+        }
+    }
+
+    Component {
+        id: emptyDetailsComponent
+
+        Kirigami.PlaceholderMessage {
+            width: parent.width - (Kirigami.Units.largeSpacing * 4)
+            anchors.centerIn: parent
+            icon.name: "smartphone"
+            text: i18n("No phone selected")
+            explanation: i18n("Select a phone in the list to see its details.")
+        }
+    }
+
+    Component {
+        id: detailsComponent
+
+        ColumnLayout {
+            width: parent.width
+            spacing: Kirigami.Units.largeSpacing
+
+            RowLayout {
+                Layout.fillWidth: true
                 spacing: Kirigami.Units.largeSpacing
 
                 Kirigami.Icon {
                     source: "smartphone"
-                    Layout.preferredWidth: Kirigami.Units.iconSizes.medium
-                    Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.large
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.large
                 }
 
                 ColumnLayout {
@@ -97,85 +211,109 @@ KCM.ScrollViewKCM {
 
                     QQC2.Label {
                         Layout.fillWidth: true
-                        text: item.name
+                        text: detailsLoader.details.name
+                        font.pointSize: Kirigami.Theme.defaultFont.pointSize + 2
+                        font.bold: true
                         elide: Text.ElideRight
                     }
 
                     QQC2.Label {
                         Layout.fillWidth: true
-                        text: i18n("%1 · paired %2", item.model, item.pairedAt)
+                        text: detailsLoader.details.model
                         elide: Text.ElideRight
-                        font: Kirigami.Theme.smallFont
                         opacity: 0.7
                     }
+                }
+            }
 
-                    // Read off the phone's own screen and compared by eye, so it is spaced
-                    // to be read a character at a time rather than skimmed.
-                    QQC2.Label {
-                        Layout.fillWidth: true
-                        Layout.topMargin: Kirigami.Units.smallSpacing
-                        text: item.fingerprint
-                        elide: Text.ElideRight
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        font.letterSpacing: Kirigami.Units.smallSpacing / 2
-                        opacity: 0.9
-                    }
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: Kirigami.Units.largeSpacing
+                rowSpacing: Kirigami.Units.smallSpacing
+
+                QQC2.Label {
+                    text: i18n("Device ID:")
+                    opacity: 0.7
+                }
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: detailsLoader.details.deviceId
+                    wrapMode: Text.Wrap
+                    textFormat: Text.PlainText
                 }
 
-                RowLayout {
-                    spacing: Kirigami.Units.smallSpacing
+                QQC2.Label {
+                    text: i18n("Paired:")
+                    opacity: 0.7
+                }
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: detailsLoader.details.pairedAt
+                }
 
+                QQC2.Label {
+                    text: i18n("Owner:")
+                    opacity: 0.7
+                }
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: detailsLoader.details.owner
+                    elide: Text.ElideRight
+                }
+
+                QQC2.Label {
+                    text: i18n("Security level:")
+                    opacity: 0.7
+                }
+                RowLayout {
                     Kirigami.Icon {
-                        // The key is only trustworthy if attestation said it lives in hardware.
-                        source: item.hardwareBacked ? "security-high" : "security-low"
+                        source: detailsLoader.details.hardwareBacked ? "security-high" : "security-low"
                         Layout.preferredWidth: Kirigami.Units.iconSizes.small
                         Layout.preferredHeight: Kirigami.Units.iconSizes.small
                     }
-
                     QQC2.Label {
-                        text: item.hardwareBacked ? i18n("Hardware-backed (%1)", item.securityLevel)
-                                                  : i18n("Not hardware-backed")
-                        font: Kirigami.Theme.smallFont
-                        opacity: 0.8
+                        text: detailsLoader.details.hardwareBacked
+                            ? i18n("Hardware-backed (%1)", detailsLoader.details.securityLevel)
+                            : i18n("Not hardware-backed (%1)", detailsLoader.details.securityLevel)
                     }
                 }
 
-                QQC2.Button {
-                    text: i18n("Remove")
-                    icon.name: "edit-delete"
-                    display: QQC2.AbstractButton.IconOnly
-                    onClicked: {
-                        confirmRemoval.deviceId = item.deviceId;
-                        confirmRemoval.deviceName = item.name;
-                        confirmRemoval.open();
-                    }
+                QQC2.Label {
+                    text: i18n("Verified boot:")
+                    opacity: 0.7
+                }
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: detailsLoader.details.verifiedBoot
+                }
 
-                    QQC2.ToolTip.visible: hovered
-                    QQC2.ToolTip.text: i18n("Remove this phone")
+                QQC2.Label {
+                    text: i18n("Key fingerprint:")
+                    opacity: 0.7
+                }
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: detailsLoader.details.fingerprint
+                    wrapMode: Text.Wrap
+                    font.letterSpacing: Kirigami.Units.smallSpacing / 2
                 }
             }
-        }
-    }
 
-    footer: RowLayout {
-        QQC2.Button {
-            text: i18n("Pair a phone…")
-            icon.name: "list-add"
-            // The empty-state placeholder already offers this, front and centre.
-            visible: deviceList.count > 0
-            enabled: root.devices.available && !root.devices.pairing
-            onClicked: root.startPairing()
-        }
+            Item {
+                Layout.fillHeight: true
+            }
 
-        Item {
-            Layout.fillWidth: true
-        }
-
-        QQC2.Button {
-            text: i18n("Refresh")
-            icon.name: "view-refresh"
-            enabled: root.devices.available
-            onClicked: root.devices.refresh()
+            QQC2.Button {
+                Layout.alignment: Qt.AlignRight
+                text: i18n("Remove")
+                icon.name: "edit-delete"
+                onClicked: {
+                    confirmRemoval.deviceId = detailsLoader.details.deviceId;
+                    confirmRemoval.deviceName = detailsLoader.details.name;
+                    confirmRemoval.open();
+                }
+            }
         }
     }
 

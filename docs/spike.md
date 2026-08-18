@@ -34,7 +34,7 @@ Every one of these is replaced by the real daemon:
 
 | Spike | Real design |
 |---|---|
-| Plain TCP over `adb reverse` | TLS 1.3, mutual SPKI pinning, mDNS discovery |
+| Plain TCP over the LAN | TLS 1.3, mutual SPKI pinning, mDNS discovery |
 | Newline-delimited JSON | CBOR, signing bytes exactly as transmitted |
 | Unix socket, daemon runs as the desktop user | System D-Bus, daemon as a `kpasskey` system user |
 | No proximity check | Mandatory BLE proximity nonce, fail-closed |
@@ -75,8 +75,8 @@ sudo install -d -o "$USER" -g "$USER" -m 0755 /run/kpasskey
     --pubkey crates/kpk-attest/testdata/device-pubkey.pem \
     --socket /run/kpasskey/pam.sock --port 34719 --timeout 180
 
-# phone (app must be installed, key generated, and foregrounded)
-adb reverse tcp:34719 tcp:34719
+# phone (app must be installed, key generated, and foregrounded;
+# both devices must be on the same LAN)
 adb shell am start -n org.kpasskey/.ui.MainActivity
 
 # PAM
