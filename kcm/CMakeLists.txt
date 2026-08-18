@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(kcm_kpasskey VERSION 0.1.0 LANGUAGES CXX) # x-release-please-version
+project(kcm_kpasskey VERSION 0.1.1 LANGUAGES CXX) # x-release-please-version
 
 set(QT_MIN_VERSION 6.8.0)
 set(KF_MIN_VERSION 6.0.0)
