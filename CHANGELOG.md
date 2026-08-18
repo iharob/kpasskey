@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/iharob/kpasskey/compare/v0.1.0...v0.1.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* place the KCM under the security-privacy category ([4c4f405](https://github.com/iharob/kpasskey/commit/4c4f4052a456c50afe1844f6ebebb5cb25748655))
+
 ## [0.1.0](https://github.com/iharob/kpasskey/compare/v0.0.1...v0.1.0) (2026-08-17)
 
 
