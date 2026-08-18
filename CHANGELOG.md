@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/iharob/kpasskey/compare/v0.1.1...v0.2.0) (2026-08-18)
+
+
+### Features
+
+* LAN phone pairing, service-health check, and KCM details panel ([#5](https://github.com/iharob/kpasskey/issues/5)) ([ec4a960](https://github.com/iharob/kpasskey/commit/ec4a9607e8c820f5a4cea8eafea9ca42c02fc039))
+
 ## [0.1.1](https://github.com/iharob/kpasskey/compare/v0.1.0...v0.1.1) (2026-08-18)
 
 
