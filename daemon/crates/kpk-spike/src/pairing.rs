@@ -15,6 +15,10 @@ use rand::TryRngCore as _;
 const PAIRING_WINDOW: Duration = Duration::from_secs(120);
 const TOKEN_LEN: usize = 32;
 
+/// Public fallback used when the desktop cannot discover a LAN address. The phone will still
+/// be able to connect through `adb reverse tcp:<port> tcp:<port>` in that case.
+const FALLBACK_ADDRESS: &str = "127.0.0.1";
+
 pub struct PairingSession {
     pub token: [u8; TOKEN_LEN],
     pub uri: String,
@@ -53,9 +57,16 @@ impl Pairings {
         let host = hostname();
         let encoded = BASE64URL.encode(token);
         let short_code = short_code(&token);
+        let address = local_address().unwrap_or_else(|| {
+            eprintln!(
+                "[pair] no LAN address found; pairing QR falls back to {}:{}",
+                FALLBACK_ADDRESS,
+                crate::DEFAULT_PHONE_PORT
+            );
+            FALLBACK_ADDRESS.to_owned()
+        });
         let uri = format!(
             "kpk://pair?v=1&h={host}&t={encoded}&a={address}:{port}",
-            address = "127.0.0.1",
             port = crate::DEFAULT_PHONE_PORT,
         );
 
@@ -109,4 +120,17 @@ fn short_code(token: &[u8]) -> String {
 fn hostname() -> String {
     std::fs::read_to_string("/proc/sys/kernel/hostname")
         .map_or_else(|_| "unknown-host".to_owned(), |name| name.trim().to_owned())
+}
+
+/// Returns an IPv4 address the phone is likely to be able to reach from the same LAN.
+///
+/// The desktop may have many interfaces; the one that would carry traffic to a public
+/// address is usually the same Wi-Fi the phone is on. No packet is actually sent.
+fn local_address() -> Option<String> {
+    let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
+    socket.connect("1.1.1.1:80").ok()?;
+    match socket.local_addr().ok()?.ip() {
+        std::net::IpAddr::V4(address) => Some(address.to_string()),
+        std::net::IpAddr::V6(_) => None,
+    }
 }

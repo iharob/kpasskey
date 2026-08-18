@@ -4,6 +4,7 @@
 #include <QDBusInterface>
 #include <QList>
 #include <QString>
+#include <QVariantMap>
 
 struct PairedDevice {
     QString id;
@@ -24,6 +25,7 @@ class DeviceModel : public QAbstractListModel
     Q_OBJECT
     Q_PROPERTY(bool available READ available NOTIFY availableChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
+    Q_PROPERTY(QString serviceStatus READ serviceStatus NOTIFY serviceStatusChanged)
     Q_PROPERTY(QString pairingUri READ pairingUri NOTIFY pairingChanged)
     Q_PROPERTY(QString pairingCode READ pairingCode NOTIFY pairingChanged)
     Q_PROPERTY(bool pairing READ pairing NOTIFY pairingChanged)
@@ -50,11 +52,13 @@ public:
 
     bool available() const;
     QString statusMessage() const;
+    QString serviceStatus() const;
     QString pairingUri() const;
     QString pairingCode() const;
     bool pairing() const;
 
     Q_INVOKABLE void refresh();
+    Q_INVOKABLE QVariantMap deviceDetails(int row) const;
     Q_INVOKABLE void removeDevice(const QString &id);
     Q_INVOKABLE void beginPairing(const QString &label);
     Q_INVOKABLE void cancelPairing();
@@ -63,14 +67,18 @@ public:
 Q_SIGNALS:
     void availableChanged();
     void statusMessageChanged();
+    void serviceStatusChanged();
     void pairingChanged();
 
 private:
     void setStatus(const QString &message);
+    void setServiceStatus(const QString &message);
+    void checkServices();
 
     QDBusInterface m_manager;
     QList<PairedDevice> m_devices;
     QString m_status;
+    QString m_serviceStatus;
     QString m_pairingUri;
     QString m_pairingCode;
     /// Device count when the window opened. The daemon consumes the pairing token without

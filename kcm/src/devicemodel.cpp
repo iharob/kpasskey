@@ -4,8 +4,11 @@
 
 #include <QDBusArgument>
 #include <QDBusConnection>
+#include <QDBusInterface>
+#include <QDBusObjectPath>
 #include <QDBusReply>
 #include <QDateTime>
+#include <QVariantMap>
 
 namespace
 {
@@ -14,6 +17,30 @@ namespace
 constexpr QLatin1StringView ServiceName{"org.kpasskey"};
 constexpr QLatin1StringView ObjectPath{"/org/kpasskey/Manager1"};
 constexpr QLatin1StringView InterfaceName{"org.kpasskey.Manager1"};
+
+constexpr QLatin1StringView SystemdService{"org.freedesktop.systemd1"};
+constexpr QLatin1StringView SystemdPath{"/org/freedesktop/systemd1"};
+constexpr QLatin1StringView SystemdManager{"org.freedesktop.systemd1.Manager"};
+constexpr QLatin1StringView SystemdUnit{"org.freedesktop.systemd1.Unit"};
+constexpr QLatin1StringView PropInterface{"org.freedesktop.DBus.Properties"};
+
+/// Returns the ActiveState of a systemd unit, or an empty string when it cannot be queried.
+QString activeState(const QDBusConnection &bus, const QString &unitName)
+{
+    QDBusInterface manager{SystemdService, SystemdPath, SystemdManager, bus};
+    const QDBusReply<QDBusObjectPath> unit = manager.call(QStringLiteral("GetUnit"), unitName);
+    if (!unit.isValid()) {
+        return {};
+    }
+
+    QDBusInterface properties{SystemdService, unit.value().path(), PropInterface, bus};
+    const QDBusReply<QVariant> state =
+        properties.call(QStringLiteral("Get"), SystemdUnit, QStringLiteral("ActiveState"));
+    if (!state.isValid()) {
+        return {};
+    }
+    return state.value().toString();
+}
 }
 
 DeviceModel::DeviceModel(QObject *parent)
@@ -83,6 +110,30 @@ QHash<int, QByteArray> DeviceModel::roleNames() const
     };
 }
 
+QVariantMap DeviceModel::deviceDetails(int row) const
+{
+    if (row < 0 || row >= static_cast<int>(m_devices.size())) {
+        return {};
+    }
+
+    const PairedDevice &device = m_devices.at(row);
+    const bool hardwareBacked = device.securityLevel == QLatin1String("StrongBox")
+        || device.securityLevel == QLatin1String("TrustedEnvironment");
+
+    return {
+        {QStringLiteral("deviceId"), device.id},
+        {QStringLiteral("name"), device.name},
+        {QStringLiteral("model"), device.model},
+        {QStringLiteral("owner"), device.owner},
+        {QStringLiteral("securityLevel"), device.securityLevel},
+        {QStringLiteral("verifiedBoot"), device.verifiedBoot},
+        {QStringLiteral("pairedAt"),
+         QDateTime::fromSecsSinceEpoch(static_cast<qint64>(device.pairedAt)).toString(Qt::TextDate)},
+        {QStringLiteral("hardwareBacked"), hardwareBacked},
+        {QStringLiteral("fingerprint"), device.fingerprint},
+    };
+}
+
 bool DeviceModel::available() const
 {
     return m_manager.isValid();
@@ -91,6 +142,20 @@ bool DeviceModel::available() const
 QString DeviceModel::statusMessage() const
 {
     return m_status;
+}
+
+QString DeviceModel::serviceStatus() const
+{
+    return m_serviceStatus;
+}
+
+void DeviceModel::setServiceStatus(const QString &message)
+{
+    if (m_serviceStatus == message) {
+        return;
+    }
+    m_serviceStatus = message;
+    Q_EMIT serviceStatusChanged();
 }
 
 QString DeviceModel::pairingUri() const
@@ -121,6 +186,7 @@ void DeviceModel::refresh()
 {
     if (!m_manager.isValid()) {
         setStatus(i18n("The kpasskey service is not running."));
+        setServiceStatus(i18n("The kpasskey D-Bus service is not running."));
         Q_EMIT availableChanged();
         return;
     }
@@ -128,6 +194,7 @@ void DeviceModel::refresh()
     const QDBusMessage reply = m_manager.call(QStringLiteral("ListDevices"));
     if (reply.type() != QDBusMessage::ReplyMessage || reply.arguments().isEmpty()) {
         setStatus(i18n("Could not read the device list: %1", reply.errorMessage()));
+        checkServices();
         return;
     }
 
@@ -150,7 +217,29 @@ void DeviceModel::refresh()
     endResetModel();
 
     setStatus(m_devices.isEmpty() ? i18n("No phone is paired yet.") : QString());
+    checkServices();
     Q_EMIT availableChanged();
+}
+
+void DeviceModel::checkServices()
+{
+    QStringList problems;
+
+    const QString daemonState = activeState(QDBusConnection::sessionBus(), QStringLiteral("kpasskey.service"));
+    if (daemonState != QLatin1String("active")) {
+        problems.append(i18n("kpasskey.service is %1", daemonState.isEmpty() ? i18n("not loaded") : daemonState));
+    }
+
+    const QString fidoState = activeState(QDBusConnection::systemBus(), QStringLiteral("kpasskey-fido.service"));
+    if (fidoState != QLatin1String("active")) {
+        problems.append(i18n("kpasskey-fido.service is %1", fidoState.isEmpty() ? i18n("not loaded") : fidoState));
+    }
+
+    if (problems.isEmpty()) {
+        setServiceStatus(QString());
+    } else {
+        setServiceStatus(i18n("Some services are not running: %1", problems.join(QLatin1String(", "))));
+    }
 }
 
 void DeviceModel::removeDevice(const QString &id)

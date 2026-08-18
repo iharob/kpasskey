@@ -11,7 +11,7 @@ authorised end to end with no password typed, and the cryptographic core is real
 non-extractable P-256 key in the phone's TEE, auth-per-use, hardware-attested, signing
 the entire request rather than a bare nonce.
 
-Everything around that core is still a bench shortcut — plain TCP over `adb reverse`,
+Everything around that core is still a bench shortcut — plain TCP over the LAN,
 newline-delimited JSON, one hard-coded device, no proximity check, and a daemon running
 as the desktop user while the PAM module runs as root. `docs/spike.md` lists what is real
 and what is a shortcut, side by side. Do not put this on a machine you care about.
